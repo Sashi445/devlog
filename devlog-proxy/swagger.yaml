@@ -1,0 +1,555 @@
+openapi: 3.0.0
+
+info:
+  title: devlog
+  description: api documentation
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+
+  /:
+    post:
+      description: login to account 
+      tags: [proxyCheckApi]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+      responses:
+        200: 
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  exists:
+                    type: boolean
+                  user:
+                    type: object
+        400: 
+          description: failed
+
+  /users/{user}/follows/{targetuser}:
+    get:
+      description: check if a user follows another user
+      tags: [userApi]
+      parameters:
+        - in: path
+          name: user
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: targetuser
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  follows:
+                    type: boolean
+        400:
+          description: failed
+
+  /users/info/{username}:
+    get:
+      description: for profiles in search results
+      tags: [userApi]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+        400:
+          description: internal error        
+
+  /profile/user/{username}:
+    get:
+      description: get method to retrive user information
+      tags: [profileApi]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userRef'
+        400:
+          description: internal error
+
+  /profile:
+    get:
+      description: get profile information of user from github
+      tags: [profileApi]
+      parameters:
+        - in: header
+          name: authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        200: 
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatar:
+                    type: string
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  followers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        avatar:
+                          type: string
+                        url:
+                          type: string
+                  following:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        avatar:
+                          type: string
+                        url:
+                          type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  bio:
+                    type: string
+        400: 
+          description: failed
+
+  /repos/contributors/{repoRef}:
+    get:
+      description: given repoRef get all contributors of the repo
+      tags: [repoApi]
+      parameters:
+        - in: path
+          name: repoRef
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        200: 
+          description: success
+        400: 
+          description: failed
+
+  /repos/posts/{repoRef}:
+    get:
+      tags: [repoApi]
+      description: get all the posts that are associated with the repo
+      parameters:
+        - name: repoRef
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/post'
+        400:
+          description: internal error
+
+  /search/{query}:
+    get:
+      description: search users
+      tags: [searchApi]
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        400:
+          description: internal error
+
+  /search/repos/{query}:
+    get: 
+      description: get repos when searched
+      tags: [searchApi]
+      parameters:
+        - in: path
+          name: query
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/repoRef'
+        400:
+          description: internal error
+
+  /tags/all:
+    get:
+      description: get all tags
+      tags: [tagsApi]
+      responses: 
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    value:
+                      type: string
+        400:
+          description: internal error
+
+  /tags:
+    get:
+      description: get posts by tags
+      tags: [tagsApi]
+      parameters:
+        - in: query
+          name: selected
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/post'
+        400:
+          description: failed
+
+  /posts/{username}:
+    get:
+      description: get user posts
+      tags: [postsApi]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/post' 
+        400:
+          description: internal error
+
+  /posts/repos/post/{user}:
+    get:
+      description: get user repos
+      tags: [postsApi]
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/repo' 
+        400:
+          description: internal error
+
+  /posts/bookmark/{post}/{user}:
+    post:
+      description: bookmark posts
+      tags: [postsApi]
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: post
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+        400:
+          description: internal error
+
+  /posts/like/{post}/{user}:
+    post:
+      description: like posts
+      tags: [postsApi]
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: post
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+        400:
+          description: internal error
+
+  /posts/{user}:
+    post:
+      description: post a content
+      tags: [postsApi]
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags: 
+                  type: array
+                  items:
+                    type: string
+                postContent:
+                  type: string
+                repo: 
+                  type: string
+      responses:
+        200: 
+          description: success
+        400: 
+          description: failed
+
+  /community/{username}:
+    get:
+      description: given username gets all repos
+      tags: [communityApi]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        200: 
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/repoRef'
+        400: 
+          description: failed
+
+components:
+  schemas:
+    user:
+      type: object
+      properties:
+        login:
+          type: string
+        id:
+          type: integer
+        node_id:
+          type: string
+        avatar_url:
+          type: string
+        gravatar_id:
+          type: string
+        url:
+          type: string
+        html_url:
+          type: string
+        followers_url:
+          type: string
+        following_url:
+          type: string
+        gists_url:
+          type: string
+        starred_url:
+          type: string
+        subscriptions_url:
+          type: string
+        organizations_url:
+          type: string
+        repos_url:
+          type: string
+        events_url:
+          type: string
+        received_events_url:
+          type: string
+        type:
+          type: string
+        site_admin:
+          type: boolean
+        score:
+          type: integer
+
+    repo:
+      type: object
+      properties:
+        id:
+          type: string
+        nodeId:
+          type: string
+        name:
+          type: string
+        fullName:
+          type: string
+        description:
+          type: string
+
+    repoRef:
+      type: object
+      properties:
+        repoRef:
+          type: string
+        repoName:
+          type: string
+        stargazers:
+          type: integer
+        forks:
+          type: integer
+        topics:
+          type: array
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        languages:
+          type: object
+
+    post:
+      type: object
+      properties:
+        id:
+          type: string
+        repoRef:
+          type: string
+        user:
+          type: string
+        postContent:
+          type: string
+        likes:
+          type: array
+          items:
+            type: string
+        bookmarks:
+          type: array
+          items:
+            type: string 
+        tags:
+          type: array
+          items:
+            type: string
+        repoName:
+          type: string
+        createdAt:
+          type: string
+        userRef: 
+          $ref: '#/components/schemas/userRef'
+
+    userRef: 
+      type: object
+      properties:
+        _id:
+          type: string
+        userRef:
+          type: integer
+        username:
+          type: string
+        avatar:
+          type: string
+        joinedAt:
+          type: string

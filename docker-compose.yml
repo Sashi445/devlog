@@ -1,0 +1,28 @@
+version: '3'
+services:
+    backend:
+        build: ./devlog-proxy
+        ports:
+            - 8080:5000
+        depends_on:
+            - redis-server
+    frontend:
+        build: ./devlog-client
+        ports: 
+            - 80:3000
+        depends_on:
+            - backend
+    redis-server:
+        image: 'redis'
+        volumes:     
+            - redis-data:/data/rdb
+        networks:
+            - app-network 
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  node_modules:  
