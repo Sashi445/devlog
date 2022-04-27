@@ -11,6 +11,6 @@ test("GET /tags/all", async () => {
         expect(response.body[0].value).toBe("dev")
 
     });
-});
+}, 30000);
 
 
