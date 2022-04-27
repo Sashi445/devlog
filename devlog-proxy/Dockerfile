@@ -17,11 +17,11 @@ FROM node:17-alpine3.14 as base
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
 FROM base as test
 RUN npm install
-COPY . .
+COPY ./ ./
 RUN npm run test
 
 # FROM base as prod
