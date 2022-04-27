@@ -24,7 +24,7 @@ RUN npm install
 COPY ./ ./
 RUN npm run test
 
-# FROM base as prod
-# RUN npm ci --production
-# COPY . .
-# CMD [ "node", "index.js" ]
+FROM base as prod
+RUN npm ci --production
+COPY . .
+CMD [ "node", "index.js" ]
